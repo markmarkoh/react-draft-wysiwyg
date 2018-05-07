@@ -19,6 +19,7 @@ class Suggestion {
       dropdownClassName,
       optionClassName,
       modalHandler,
+      type,
     } = config;
     this.config = {
       separator,
@@ -31,12 +32,15 @@ class Suggestion {
       dropdownClassName,
       optionClassName,
       modalHandler,
+      type,
     };
   }
 
   findSuggestionEntities = (contentBlock, callback) => {
     if (this.config.getEditorState()) {
-      const { separator, trigger, getSuggestions, getEditorState } = this.config;
+      const {
+        separator, trigger, getSuggestions, getEditorState,
+      } = this.config;
       const selection = getEditorState().getSelection();
       if (selection.get('anchorKey') === contentBlock.get('key') &&
         selection.get('anchorKey') === selection.get('focusKey')) {
@@ -207,10 +211,12 @@ function getSuggestionComponent() {
     addMention = () => {
       const { activeOption } = this.state;
       const editorState = config.getEditorState();
-      const { onChange, separator, trigger } = config;
+      const {
+        onChange, separator, trigger, type,
+      } = config;
       const selectedMention = this.filteredSuggestions[activeOption];
       if (selectedMention) {
-        addMention(editorState, onChange, separator, trigger, selectedMention);
+        addMention(editorState, onChange, separator, trigger, selectedMention, type);
       }
     }
 

@@ -4,15 +4,19 @@ import classNames from 'classnames';
 import './styles.css';
 
 class Mention {
-  constructor(className) {
-    this.className = className;
+  constructor(config) {
+    this.className = config.mentionClassName;
+    this.type = config.type;
+    this.MentionComponent = config.MentionComponent;
   }
   getMentionComponent = () => {
-    const className = this.className;
+    if (this.MentionComponent) {
+      return this.MentionComponent;
+    }
     const MentionComponent = ({ entityKey, children, contentState }) => {
       const { url, value } = contentState.getEntity(entityKey).getData();
       return (
-        <a href={url || value} className={classNames('rdw-mention-link', className)}>
+        <a href={url || value} className={classNames('rdw-mention-link', this.className)}>
           {children}
         </a>
       );
@@ -28,19 +32,18 @@ class Mention {
     strategy: this.findMentionEntities,
     component: this.getMentionComponent(),
   });
+  findMentionEntities = (contentBlock, callback, contentState) => {
+    contentBlock.findEntityRanges(
+      (character) => {
+        const entityKey = character.getEntity();
+        return (
+          entityKey !== null &&
+          contentState.getEntity(entityKey).getType() === this.type
+        );
+      },
+      callback,
+    );
+  };
 }
 
-Mention.prototype.findMentionEntities = (contentBlock, callback, contentState) => {
-  contentBlock.findEntityRanges(
-    (character) => {
-      const entityKey = character.getEntity();
-      return (
-        entityKey !== null &&
-        contentState.getEntity(entityKey).getType() === 'MENTION'
-      );
-    },
-    callback,
-  );
-};
-
-module.exports = Mention;
+export default Mention;
