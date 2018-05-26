@@ -28,12 +28,12 @@ export default function addMention(
   if (selectedBlockText[focusOffset] === ' ') {
     spaceAlreadyPresent = true;
   }
-  let updatedSelection = editorState.getSelection().merge({
+  const updatedSelection = editorState.getSelection().merge({
     anchorOffset: mentionIndex,
     focusOffset,
   });
   let newEditorState = EditorState.acceptSelection(editorState, updatedSelection);
-  let contentState = Modifier.replaceText(
+  const contentState = Modifier.replaceText(
     newEditorState.getCurrentContent(),
     updatedSelection,
     `${trigger}${value}`,
@@ -41,21 +41,21 @@ export default function addMention(
     entityKey,
   );
   newEditorState = EditorState.push(newEditorState, contentState, 'insert-characters');
-
-  if (!spaceAlreadyPresent) {
-    // insert a blank space after mention
-    updatedSelection = newEditorState.getSelection().merge({
-      anchorOffset: mentionIndex + value.length + trigger.length,
-      focusOffset: mentionIndex + value.length + trigger.length,
-    });
-    newEditorState = EditorState.acceptSelection(newEditorState, updatedSelection);
-    contentState = Modifier.insertText(
-      newEditorState.getCurrentContent(),
-      updatedSelection,
-      ' ',
-      newEditorState.getCurrentInlineStyle(),
-      undefined,
-    );
-  }
+  //
+  // if (!spaceAlreadyPresent) {
+  //   // insert a blank space after mention
+  //   updatedSelection = newEditorState.getSelection().merge({
+  //     anchorOffset: mentionIndex + value.length + trigger.length,
+  //     focusOffset: mentionIndex + value.length + trigger.length,
+  //   });
+  //   newEditorState = EditorState.acceptSelection(newEditorState, updatedSelection);
+  //   contentState = Modifier.insertText(
+  //     newEditorState.getCurrentContent(),
+  //     updatedSelection,
+  //     ' ',
+  //     newEditorState.getCurrentInlineStyle(),
+  //     undefined,
+  //   );
+  // }
   onChange(EditorState.push(newEditorState, contentState, 'insert-characters'));
 }
