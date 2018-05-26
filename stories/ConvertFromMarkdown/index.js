@@ -1,10 +1,12 @@
 /* @flow */
 /* eslint-disable react/no-multi-comp */
-
+/* eslint-disable */
 import React, { PureComponent, Component } from 'react';
-import { EditorState, convertToRaw } from 'draft-js';
+import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
 import draftToMarkdown from 'draftjs-to-markdown';
 import { Editor } from '../../src';
+import { markdownToDraft } from 'markdown-draft-js';
+
 
 class Test extends PureComponent {
   props: {
@@ -24,8 +26,27 @@ class Test extends PureComponent {
 }
 
 class ConvertToRawDraftContentEditor extends Component {
-  state = {
-    editorState: EditorState.createEmpty(),
+  constructor(props) {
+    super(props);
+    const rawData = markdownToDraft('## Hello\ncool\n\n@(https://coool.com)\n\nnice', {
+      remarkablePlugins: [mentionWrapper],
+      blockEntities: {
+        mention_open(item) {
+          return {
+            type: 'RAD',
+            mutability: 'IMMUTABLE',
+            data: {
+              url: item.url,
+              value: `(${item.url})`,
+              text: `@(${item.url})`
+            },
+          };
+        },
+      },
+    });
+    const contentState = convertFromRaw(rawData);
+    const newEditorState = EditorState.createWithContent(contentState);
+    this.state = { editorState: newEditorState };
   }
 
   onEditorStateChange: Function = (editorState) => {
@@ -45,7 +66,7 @@ class ConvertToRawDraftContentEditor extends Component {
         MentionComponent: Test,
         type: 'RAD',
         suggestions: [
-          { text: 'Apple Search Presentation', value: '(https://coool.com)', url: 'https://cool.com' },
+          { text: 'Apple Search Presentation', value: '(https://coool.com)', url: 'https://cool.com', icon: 'Ʊ' },
           { text: 'BANANA', value: 'Abanana', url: 'banana' },
           { text: 'CHERRY', value: 'cherry', url: 'cherry' },
           { text: 'DURIAN', value: 'durian', url: 'durian' },
@@ -67,6 +88,52 @@ class ConvertToRawDraftContentEditor extends Component {
       />
     </div>);
   }
+}
+
+const MentionRegexp = /@\((.*)\)/;
+function mentionWrapper(remarkable) {
+  remarkable.inline.ruler.push('mention', function mention(state, silent) {
+    // it is surely not our rule, so we could stop early
+    if (!state.src) {
+      return false;
+    }
+
+    if (state.src[state.pos] !== '@') {
+      return false;
+    }
+
+    var match = MentionRegexp.exec(state.src);
+
+    if (!match) {
+      return false;
+    }
+
+    // in silent mode it shouldn't output any tokens or modify pending
+    if (!silent) {
+      state.push({
+        type: 'mention_open',
+        url: match[1],
+        id: match[2],
+        level: state.level
+      });
+
+      state.push({
+        type: 'text',
+        content: `@(${match[1]})`,
+        level: state.level + 1
+      });
+
+      state.push({
+        type: 'mention_close',
+        level: state.level
+      });
+    }
+
+    // every rule should set state.pos to a position after token"s contents
+    state.pos += match[0].length;
+
+    return true;
+  });
 }
 
 export default ConvertToRawDraftContentEditor;

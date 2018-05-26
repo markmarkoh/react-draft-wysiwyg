@@ -61,11 +61,11 @@ class Suggestion {
           const mentionText = text.substr(index + preText.length, text.length);
           const suggestionPresent =
           getSuggestions().some((suggestion) => {
-            if (suggestion.value) {
+            if (suggestion.text) {
               if (this.config.caseSensitive) {
-                return suggestion.value.indexOf(mentionText) >= 0;
+                return suggestion.text.indexOf(mentionText) >= 0;
               }
-              return suggestion.value.toLowerCase()
+              return suggestion.text.toLowerCase()
                 .indexOf(mentionText && mentionText.toLowerCase()) >= 0;
             }
             return false;
@@ -94,7 +94,7 @@ function getSuggestionComponent() {
     };
 
     state: Object = {
-      style: { left: 15 },
+      style: { left: 10 },
       activeOption: -1,
       showSuggestions: true,
     };
@@ -109,7 +109,7 @@ function getSuggestionComponent() {
       if (editorRect.width < (suggestionRect.left - editorRect.left) + dropdownRect.width) {
         right = 15;
       } else {
-        left = 15;
+        left = 10;
       }
       if (editorRect.bottom < dropdownRect.bottom) {
         bottom = 0;
@@ -201,9 +201,9 @@ function getSuggestionComponent() {
             return true;
           }
           if (config.caseSensitive) {
-            return suggestion.value.indexOf(mentionText) >= 0;
+            return suggestion.text.indexOf(mentionText) >= 0;
           }
-          return suggestion.value.toLowerCase()
+          return suggestion.text.toLowerCase()
             .indexOf(mentionText && mentionText.toLowerCase()) >= 0;
         });
     }
@@ -255,7 +255,8 @@ function getSuggestionComponent() {
                     { 'rdw-suggestion-option-active': (index === activeOption) },
                   )}
                 >
-                  {suggestion.text}
+                  {!!suggestion.icon && <span className="rdw-suggestion-option-icon">{suggestion.icon}</span>}
+                  <span className="rdw-suggestion-option-text">{suggestion.text}</span>
                 </span>))}
             </span>}
         </span>

@@ -57,6 +57,7 @@
     "draftjs-utils": "^0.9.3",
     "html-to-draftjs": "^1.4.0",
     "linkify-it": "^2.0.3",
+    "markdown-draft-js": "^1.0.1",
     "prop-types": "^15.6.0"
   },
   "peerDependencies": {
