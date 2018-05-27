@@ -1,6 +1,7 @@
 import {
   EditorState,
   Modifier,
+  AtomicBlockUtils,
 } from 'draft-js';
 import { getSelectedBlock } from 'draftjs-utils';
 
@@ -17,30 +18,62 @@ export default function addMention(
     .getCurrentContent()
     .createEntity(type, 'IMMUTABLE', { text: `${trigger}${value}`, value, url })
     .getLastCreatedEntityKey();
+
+
+  const focusOffset = editorState.getSelection().focusOffset;
   const selectedBlock = getSelectedBlock(editorState);
   const selectedBlockText = selectedBlock.getText();
-  let focusOffset = editorState.getSelection().focusOffset;
   const mentionIndex = (selectedBlockText.lastIndexOf(separator + trigger, focusOffset) || 0) + 1;
-  let spaceAlreadyPresent = false;
-  if (selectedBlockText.length === mentionIndex + 1) {
-    focusOffset = selectedBlockText.length;
-  }
-  if (selectedBlockText[focusOffset] === ' ') {
-    spaceAlreadyPresent = true;
-  }
   const updatedSelection = editorState.getSelection().merge({
     anchorOffset: mentionIndex,
     focusOffset,
   });
-  let newEditorState = EditorState.acceptSelection(editorState, updatedSelection);
+
   const contentState = Modifier.replaceText(
-    newEditorState.getCurrentContent(),
+    editorState.getCurrentContent(),
     updatedSelection,
-    `${trigger}${value}`,
-    newEditorState.getCurrentInlineStyle(),
+    '',
+    editorState.getCurrentInlineStyle(),
     entityKey,
   );
-  newEditorState = EditorState.push(newEditorState, contentState, 'insert-characters');
+
+  let newEditorState = EditorState.push(editorState, contentState, 'insert-characters');
+
+  newEditorState = AtomicBlockUtils.insertAtomicBlock(
+    newEditorState,
+    entityKey,
+    `${trigger}(${value})`, // for draft to markdown
+  );
+
+  // console.log('getCurrentContent', newEditorState.getCurrentContent());
+  // console.log('selected block', getSelectedBlock(editorState));
+  // console.log('focusOffset', editorState.getSelection().focusOffset);
+  onChange(newEditorState);
+  return;
+  // const selectedBlock = getSelectedBlock(editorState);
+  // const selectedBlockText = selectedBlock.getText();
+  // let focusOffset = editorState.getSelection().focusOffset;
+  // const mentionIndex = (selectedBlockText.lastIndexOf(separator + trigger, focusOffset) || 0) + 1;
+  // let spaceAlreadyPresent = false;
+  // if (selectedBlockText.length === mentionIndex + 1) {
+  //   focusOffset = selectedBlockText.length;
+  // }
+  // if (selectedBlockText[focusOffset] === ' ') {
+  //   spaceAlreadyPresent = true;
+  // }
+  // const updatedSelection = editorState.getSelection().merge({
+  //   anchorOffset: mentionIndex,
+  //   focusOffset,
+  // });
+  // newEditorState = EditorState.acceptSelection(editorState, updatedSelection);
+  // const contentState = Modifier.replaceText(
+  //   newEditorState.getCurrentContent(),
+  //   updatedSelection,
+  //   `${trigger}${value}`,
+  //   newEditorState.getCurrentInlineStyle(),
+  //   entityKey,
+  // );
+  // newEditorState = EditorState.push(newEditorState, contentState, 'insert-characters');
   //
   // if (!spaceAlreadyPresent) {
   //   // insert a blank space after mention

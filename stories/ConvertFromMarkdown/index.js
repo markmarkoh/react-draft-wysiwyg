@@ -41,10 +41,28 @@ class ConvertToRawDraftContentEditor extends Component {
               text: `@(${item.url})`
             },
           };
-        },
+        }
       },
     });
-    const contentState = convertFromRaw(rawData);
+
+    /*
+    I can't find a way to force the block type to be atomic, so we check for any entities referenced
+    by this block and if we see at least one, we switch the type to atomic.
+    TODO: A better check on the `block.text` to see if it matches @(http://....com/url)
+    */
+    const augmentedRawData = {
+      entityMap: rawData.entityMap,
+      blocks: rawData.blocks.map(block => {
+        if (block.entityRanges.length > 0) {
+          return {
+            ...block,
+            type: 'atomic'
+          }
+        }
+        return block
+      })
+    }
+    const contentState = convertFromRaw(augmentedRawData);
     const newEditorState = EditorState.createWithContent(contentState);
     this.state = { editorState: newEditorState };
   }
@@ -66,7 +84,7 @@ class ConvertToRawDraftContentEditor extends Component {
         MentionComponent: Test,
         type: 'RAD',
         suggestions: [
-          { text: 'Apple Search Presentation', value: '(https://coool.com)', url: 'https://cool.com', icon: 'Ʊ' },
+          { text: 'Apple Search Presentation', value: 'https://coool.com', url: 'https://cool.com', icon: 'Ʊ' },
           { text: 'BANANA', value: 'Abanana', url: 'banana' },
           { text: 'CHERRY', value: 'cherry', url: 'cherry' },
           { text: 'DURIAN', value: 'durian', url: 'durian' },
@@ -119,6 +137,8 @@ function mentionWrapper(remarkable) {
 
       state.push({
         type: 'text',
+        url: match[1],
+        cool: true,
         content: `@(${match[1]})`,
         level: state.level + 1
       });
