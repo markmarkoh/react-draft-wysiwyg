@@ -2,7 +2,7 @@
 /* eslint-disable react/no-multi-comp */
 /* eslint-disable */
 import React, { PureComponent, Component } from 'react';
-import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
+import { EditorState, Entity, CompositeDecorator, convertToRaw, convertFromRaw } from 'draft-js';
 import draftToMarkdown from 'draftjs-to-markdown';
 import { Editor } from '../../src';
 import { markdownToDraft } from 'markdown-draft-js';
@@ -62,6 +62,7 @@ class ConvertToRawDraftContentEditor extends Component {
         return block
       })
     }
+
     const contentState = convertFromRaw(augmentedRawData);
     const newEditorState = EditorState.createWithContent(contentState);
     this.state = { editorState: newEditorState };
@@ -97,6 +98,7 @@ class ConvertToRawDraftContentEditor extends Component {
         toolbarClassName="rdw-storybook-toolbar"
         wrapperClassName="rdw-storybook-wrapper"
         editorClassName="rdw-storybook-editor"
+        customDecorators={decorator}
         onEditorStateChange={this.onEditorStateChange}
       />
       <textarea
